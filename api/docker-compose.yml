@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongopinned
+    environment:
+      - MONGO_INITDB_DATABASE=pinnedb
+    volumes:
+      - ./data/db:/data/db
+      - ./init-db.js:/docker-entrypoint-initdb.d/init-db.js:ro
+
+  api:
+    build: .
+    container_name: apinned
+    environment:
+      - MONGO_URL=mongodb://mongopinned:27017/pinnedb
+    depends_on:
+      - mongodb
+
+  nginx:
+    image: nginx:alpine
+    container_name: pinnednginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
